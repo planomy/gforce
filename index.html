@@ -1955,6 +1955,56 @@
   .confirm-row .btn { min-width: 120px; padding: 10px 18px; }
   .modal p { color: var(--muted); margin: 0 0 14px; }
 
+  /* How to Play — first-visit carousel + full guide page */
+  .modal.how-to-play-carousel {
+    max-width: min(1040px, 98vw); text-align: center; padding: 18px 20px 16px;
+  }
+  .modal.how-to-play-carousel h2 {
+    font-family: 'Bangers', 'Patrick Hand', system-ui, sans-serif;
+    color: var(--accent-2); letter-spacing: 0.5px;
+  }
+  .htp-art {
+    margin: 0 0 12px; line-height: 0; border-radius: 14px; overflow: hidden;
+    background: #090814;
+    border: 1px solid var(--border);
+    box-shadow: 0 8px 28px rgba(0,0,0,0.45);
+  }
+  .htp-art img { width: 100%; height: auto; display: block; }
+  /* Slight inset zoom on the wide tutorial banner so any edge fringe stays
+     outside the clipped rounded frame. */
+  .htp-art.htp-art-wide img {
+    transform: scale(1.02);
+    transform-origin: center center;
+  }
+  .htp-granny {
+    margin: 0 0 14px; color: var(--text); font-size: 15px; line-height: 1.45;
+    text-align: left;
+  }
+  .htp-granny strong { color: var(--accent-2); font-weight: 600; }
+  .htp-dots { display: flex; gap: 8px; justify-content: center; margin: 4px 0 14px; }
+  .htp-dot {
+    width: 10px; height: 10px; border-radius: 50%; border: none; padding: 0;
+    background: rgba(255,255,255,0.22); cursor: pointer; transition: transform .15s, background .15s;
+  }
+  .htp-dot.active { background: var(--accent); transform: scale(1.15); }
+  .htp-nav { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; align-items: center; }
+  .htp-skip-row {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    margin-top: 12px; font-size: 13px; color: var(--muted);
+  }
+  .htp-skip-row input { accent-color: var(--accent); }
+  .how-to-play-page { margin-top: 14px; }
+  .how-to-play-page .htp-intro { color: var(--muted); margin: 0 0 8px; line-height: 1.5; }
+  .how-to-play-page .htp-section {
+    margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--border);
+  }
+  .how-to-play-page .htp-section:first-of-type { border-top: none; padding-top: 0; margin-top: 12px; }
+  .how-to-play-page .htp-section h2 {
+    margin: 10px 0 6px; font-family: 'Bangers', 'Patrick Hand', system-ui, sans-serif;
+    font-size: 24px; color: var(--accent-2); letter-spacing: 0.4px;
+  }
+  .how-to-play-page .htp-section p { margin: 0; color: var(--muted); line-height: 1.5; }
+
   .paragraph-reveal {
     background: rgba(0,0,0,0.35); border: 1px solid var(--accent-2); border-radius: 14px;
     padding: 18px 20px; margin: 12px 0; font-family: Georgia, serif; font-size: 17px; line-height: 1.7;
@@ -2431,6 +2481,35 @@
    ============================================================ */
 const APP_VERSION = 'v1.0.1';
 const ASSET_VERSION = '2'; // bump when topic/story art changes (cache-bust)
+const PROMO_VERSION = '7';
+
+const HOW_TO_PLAY_SLIDES = [
+  {
+    id: 'how-to-forge',
+    title: 'Forge a story',
+    img: 'assets/promo/how-to-forge.png',
+    wide: true,
+    copy: 'Pick a <strong>theme</strong>, choose a <strong>story card</strong>, then pick the best word in every slot and hit CHECK. Forge all five sentences to earn XP and unlock the arcade!'
+  },
+  {
+    id: 'earn-xp',
+    title: 'Write & earn XP',
+    img: 'assets/promo/earn-xp.png',
+    copy: 'Pick the best word in every slot, type each sentence, then <strong>forge a full paragraph</strong>. XP fills your meter — spend it in the <strong>Skill Tree</strong> and <strong>Hangar</strong>, then blast aliens in the 60-second reward game!'
+  },
+  {
+    id: 'egg-baby',
+    title: 'Hatch your squad',
+    img: 'assets/promo/egg-baby.png',
+    copy: 'Finish all six stories in a theme to earn an <strong>egg</strong>. Play arcade to hatch a sidekick, collect all six babies, and keep them happy in the <strong>Pet Pantry</strong> (food daily, joy weekly).'
+  },
+  {
+    id: 'firepower',
+    title: 'Upgrade & blast',
+    img: 'assets/promo/firepower.png',
+    copy: 'Ships rank up <strong>A → D</strong> as lifetime XP grows. Unlock firepower, shields, and speed in the Skill Tree — then bring the heat in <strong>Forge Invaders</strong>!'
+  }
+];
 
 /* --------------------- STATE / STORAGE --------------------- */
 // Dev mode is opt-in via "?dev" on the URL. It exposes the Test Fly button
@@ -2485,7 +2564,9 @@ function defaultState() {
     themesCritterQueued: [],       // topics that already earned an egg slot
     equippedCritterTopic: null,    // hatched sidekick shown in arcade
     // Per-topic care dates (YYYY-M-D): nourishment daily, joy weekly.
-    petCare: {}
+    petCare: {},
+    // First-visit How to Play carousel (see openHowToPlayCarousel).
+    howToPlaySeen: false
   };
 }
 function pushHistory(entry) {
@@ -2563,6 +2644,7 @@ function loadState() {
     if (!Array.isArray(merged.paragraphs)) merged.paragraphs = [];
     if (!merged.completed || typeof merged.completed !== 'object') merged.completed = {};
     if (!TOPICS.some(t => t.id === merged.selectedTopic)) merged.selectedTopic = 'sport';
+    if (typeof merged.howToPlaySeen !== 'boolean') merged.howToPlaySeen = false;
     return merged;
   } catch (e) { return defaultState(); }
 }
@@ -4366,6 +4448,115 @@ function closeModal() {
   if (m) m.className = 'modal';
 }
 
+function markHowToPlaySeen() {
+  if (state.howToPlaySeen) return;
+  state.howToPlaySeen = true;
+  saveState();
+}
+
+function openHowToPlayCarousel() {
+  let idx = 0;
+  let dontShowAgain = false;
+  const modal = $('#modal');
+  const art = el('div', { class: 'htp-art' });
+  const artImg = el('img', { alt: '', draggable: false });
+  art.appendChild(artImg);
+  const titleEl = el('h2', {});
+  const copyEl = el('p', { class: 'htp-granny' });
+  const dotsWrap = el('div', { class: 'htp-dots' });
+  const dots = HOW_TO_PLAY_SLIDES.map((_, i) => {
+    const dot = el('button', {
+      type: 'button',
+      class: 'htp-dot' + (i === 0 ? ' active' : ''),
+      'aria-label': 'Slide ' + (i + 1),
+      onclick: () => { idx = i; paint(); }
+    });
+    dotsWrap.appendChild(dot);
+    return dot;
+  });
+  function dismiss() {
+    if (dontShowAgain) markHowToPlaySeen();
+    closeModal();
+  }
+  function onPrimary() {
+    if (idx < HOW_TO_PLAY_SLIDES.length - 1) { idx++; paint(); return; }
+    markHowToPlaySeen();
+    closeModal();
+  }
+  function paint() {
+    const slide = HOW_TO_PLAY_SLIDES[idx];
+    art.className = 'htp-art' + (slide.wide ? ' htp-art-wide' : '');
+    artImg.src = slide.img + '?v=' + PROMO_VERSION;
+    artImg.alt = slide.title;
+    titleEl.textContent = slide.title;
+    copyEl.innerHTML = 'Granny says: ' + slide.copy;
+    dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+    prevBtn.disabled = idx === 0;
+    nextBtn.textContent = idx === HOW_TO_PLAY_SLIDES.length - 1 ? 'Start slaying →' : 'Next →';
+  }
+  const prevBtn = el('button', { type: 'button', class: 'btn ghost', onclick: () => { if (idx > 0) { idx--; paint(); } } }, '← Back');
+  const nextBtn = el('button', { type: 'button', class: 'btn primary', onclick: onPrimary }, 'Next →');
+  const skipBtn = el('button', { type: 'button', class: 'btn ghost', onclick: dismiss }, 'Skip tour');
+  const chk = el('input', { type: 'checkbox', id: 'htpDontShow' });
+  chk.addEventListener('change', () => { dontShowAgain = chk.checked; });
+  paint();
+  const body = el('div', {},
+    el('p', { style: { margin: '0 0 10px', color: 'var(--muted)', fontSize: '14px' } }, 'How to Play — quick tour'),
+    art,
+    titleEl,
+    copyEl,
+    dotsWrap,
+    el('div', { class: 'htp-nav' }, prevBtn, nextBtn),
+    el('label', { class: 'htp-skip-row', for: 'htpDontShow' }, chk, "Don't show this tour again"),
+    skipBtn
+  );
+  openModal(body);
+  modal.className = 'modal wide how-to-play-carousel';
+  const back = $('#modalBack');
+  back.onclick = (e) => { if (e.target === back) dismiss(); };
+}
+
+function renderHowToPlay() {
+  const app = $('#app');
+  app.innerHTML = '';
+  app.appendChild(topbar());
+  const page = el('div', { class: 'how-to-play-page' });
+  const head = el('div', { class: 'panel' });
+  head.appendChild(el('div', { class: 'forge-head' },
+    el('button', { class: 'btn ghost', onclick: () => render() }, '← Home'),
+    el('div', { class: 'crumb' }, '📖 How to Play')
+  ));
+  head.appendChild(el('h1', { style: { margin: '6px 0 4px', fontSize: '28px' } }, 'How to Play'));
+  head.appendChild(el('p', { class: 'htp-intro' },
+    'Start with how you forge a story on the home screen, then see what XP, hatchlings, and ships unlock along the way.'));
+  for (const slide of HOW_TO_PLAY_SLIDES) {
+    const sec = el('div', { class: 'htp-section' });
+    const art = el('div', { class: 'htp-art' + (slide.wide ? ' htp-art-wide' : '') });
+    art.appendChild(el('img', { src: slide.img + '?v=' + PROMO_VERSION, alt: slide.title, draggable: false }));
+    sec.appendChild(art);
+    sec.appendChild(el('h2', {}, slide.title));
+    sec.appendChild(el('p', {}, slide.copy.replace(/<\/?strong>/g, '')));
+    head.appendChild(sec);
+  }
+  head.appendChild(el('button', {
+    class: 'btn primary',
+    style: { marginTop: '16px' },
+    onclick: () => render()
+  }, 'Back to the forge →'));
+  page.appendChild(head);
+  app.appendChild(page);
+  window.scrollTo(0, 0);
+}
+
+function maybeShowHowToPlayIntro() {
+  if (!state.name || state.howToPlaySeen) return;
+  setTimeout(() => {
+    if (!state.name || state.howToPlaySeen) return;
+    if (!$('#modalBack') || $('#modalBack').classList.contains('show')) return;
+    openHowToPlayCarousel();
+  }, 120);
+}
+
 // Themed promise-based confirm. Use instead of window.confirm() so we
 // don't get a Win-95-looking OS popup floating at the top of the page.
 //
@@ -4532,17 +4723,20 @@ function topbar() {
     buildCritterNest(),
     el('div', { class: 'row-wrap' },
       buildTopbarShopBtn(),
+      el('button', { class: 'icon-btn', 'data-tip': 'How to Play', onclick: renderHowToPlay },
+        el('img', { src: 'topbar/how-to-play.png?v=4', alt: 'How to Play', draggable: false })
+      ),
       el('button', { class: 'icon-btn', 'data-tip': 'My stories', onclick: renderGallery },
-        el('img', { src: 'topbar/stories.png', alt: 'My stories' })
+        el('img', { src: 'topbar/stories.png?v=4', alt: 'My stories' })
       ),
       el('button', { class: 'icon-btn', 'data-tip': 'Skill Tree', onclick: openSkillTree },
-        el('img', { src: 'topbar/skills.png?v=3', alt: 'Skill Tree' })
+        el('img', { src: 'topbar/skills.png?v=4', alt: 'Skill Tree' })
       ),
       el('button', { class: 'icon-btn', 'data-tip': 'Progress', onclick: renderProgress },
-        el('img', { src: 'topbar/progress.png', alt: 'Progress' })
+        el('img', { src: 'topbar/progress.png?v=2', alt: 'Progress' })
       ),
       el('button', { class: 'icon-btn', 'data-tip': 'Trophies', onclick: openTrophyModal },
-        el('img', { src: 'topbar/trophy.png', alt: 'Trophies' })
+        el('img', { src: 'topbar/trophy.png?v=2', alt: 'Trophies' })
       ),
       // Hangar sits at the right edge — anchor its tooltip on the right
       // so the bubble doesn't get clipped against the viewport edge.
@@ -4572,6 +4766,7 @@ function start(name) {
   const n = (name || '').trim();
   if (!n) { toast('Type your name first ✏️'); return; }
   state.name = n; saveState(); render();
+  maybeShowHowToPlayIntro();
 }
 function renderHome(app) {
   if (!TOPICS.some(t => t.id === state.selectedTopic)) state.selectedTopic = 'sport';
@@ -5199,7 +5394,7 @@ function renderGallery() {
   head.appendChild(el('div', { class: 'forge-head' },
     el('button', { class: 'btn ghost', onclick: () => render() }, '← Home'),
     el('div', { class: 'crumb' },
-      el('img', { class: 'crumb-icon', src: 'topbar/stories.png', alt: '', draggable: 'false' }),
+      el('img', { class: 'crumb-icon', src: 'topbar/stories.png?v=4', alt: '', draggable: 'false' }),
       'My Stories Gallery')
   ));
   head.appendChild(el('h1', { style: { margin: '6px 0 4px', fontSize: '28px' } }, 'Your forged paragraphs'));
@@ -5291,7 +5486,7 @@ function renderProgress() {
   head.appendChild(el('div', { class: 'forge-head' },
     el('button', { class: 'btn ghost', onclick: () => render() }, '← Home'),
     el('div', { class: 'crumb' },
-      el('img', { class: 'crumb-icon', src: 'topbar/progress.png', alt: '', draggable: 'false' }),
+      el('img', { class: 'crumb-icon', src: 'topbar/progress.png?v=2', alt: '', draggable: 'false' }),
       'Progress')
   ));
   head.appendChild(el('h1', { style: { margin: '6px 0 4px', fontSize: '28px' } }, `${state.name}'s Forge`));
@@ -7214,8 +7409,8 @@ function boot() {
   syncStreakUnlocks(true);
   syncShipUnlocks(true);
   const pending = drainPendingShipUnlock();
-  if (pending) celebrateShipUnlock(pending, () => render());
-  else render();
+  if (pending) celebrateShipUnlock(pending, () => { render(); maybeShowHowToPlayIntro(); });
+  else { render(); maybeShowHowToPlayIntro(); }
 }
 
 /* --------------------- BOOT --------------------- */
