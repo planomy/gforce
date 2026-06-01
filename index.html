@@ -4524,7 +4524,9 @@ function renderHowToPlay() {
   const head = el('div', { class: 'panel' });
   head.appendChild(el('div', { class: 'forge-head' },
     el('button', { class: 'btn ghost', onclick: () => render() }, '← Home'),
-    el('div', { class: 'crumb' }, '📖 How to Play')
+    el('div', { class: 'crumb' },
+      el('img', { class: 'crumb-icon', src: 'topbar/how-to-play.png?v=4', alt: '', draggable: 'false' }),
+      'How to Play')
   ));
   head.appendChild(el('h1', { style: { margin: '6px 0 4px', fontSize: '28px' } }, 'How to Play'));
   head.appendChild(el('p', { class: 'htp-intro' },
