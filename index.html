@@ -6,6 +6,13 @@
 <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate" />
 <meta http-equiv="pragma" content="no-cache" />
 <meta http-equiv="expires" content="0" />
+<script>
+(function () {
+  if (location.hostname === 'planomy.github.io' && location.pathname.indexOf('/gforge') === 0) {
+    location.replace('https://grannyboom.com' + location.pathname.replace(/^\/gforge/, '') + location.search + location.hash);
+  }
+})();
+</script>
 <title>Granny Boom — Slay aliens while you sharpen your writing</title>
 <meta name="description" content="The game that lets you slay aliens while you improve your writing." />
 <link rel="icon" type="image/png" href="logo.png" />
