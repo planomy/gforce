@@ -10,6 +10,10 @@
 (function () {
   if (location.hostname === 'planomy.github.io' && location.pathname.indexOf('/gforge') === 0) {
     location.replace('https://grannyboom.com' + location.pathname.replace(/^\/gforge/, '') + location.search + location.hash);
+    return;
+  }
+  if (location.protocol === 'http:' && /^(grannyboom\.com|www\.grannyboom\.com)$/i.test(location.hostname)) {
+    location.replace('https://grannyboom.com' + location.pathname + location.search + location.hash);
   }
 })();
 </script>
