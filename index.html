@@ -3202,7 +3202,7 @@ const PET_SHOP_ITEMS = [
     src: 'pets/shop/star_treat_bag.png',
     desc: 'A whole pouch of puff stars. The deluxe daily feast.' },
   { id: 'moon_squeak', name: 'Moon Squeak Ball', type: 'joy', cost: 100,
-    src: 'pets/shop/moon_squeak.png',
+    src: 'pets/shop/moon_squeak.png?v=5',
     desc: 'Cheerful moon that squeaks in seven languages.' },
   { id: 'rocket_rattle', name: 'Rocket Rattle', type: 'joy', cost: 120,
     src: 'pets/shop/rocket_rattle.png',
@@ -3397,9 +3397,28 @@ function buyPetShopItem(item) {
   const c = getCritterRecord(topic);
   const who = (c && c.name) || (BABY_CARD_DEFS[topic] && BABY_CARD_DEFS[topic].title) || 'Hatchling';
   toast(`${who} loved the ${item.name}!`, item.type === 'food' ? '🥣' : '💫');
-  closeModal();
-  render();
   openPetShop(topic);
+  patchPetShopChrome(topic);
+}
+function patchPetShopChrome(topic) {
+  document.querySelectorAll('.icon-btn').forEach(btn => {
+    const tip = btn.getAttribute('data-tip') || '';
+    if (tip.indexOf('Pet Pantry') < 0) return;
+    const badge = btn.querySelector('.pet-shop-badge');
+    const needs = activePetNeedsShopAttention();
+    if (needs && !badge) btn.appendChild(el('span', { class: 'pet-shop-badge', 'aria-hidden': 'true' }));
+    else if (!needs && badge) badge.remove();
+  });
+  if (!topic) return;
+  const idx = CRITTER_TOPICS.indexOf(topic);
+  if (idx < 0) return;
+  const slot = document.querySelector('.critter-nest .critter-slot.slot-' + idx);
+  if (!slot) return;
+  const meta = slot.querySelector('.critter-slot-meta');
+  const c = getCritterRecord(topic);
+  if (!meta || !c || !c.hatched) return;
+  meta.innerHTML = '';
+  meta.appendChild(buildSlotCareMeters(topic, { clickable: true }));
 }
 function buildTopbarShopBtn() {
   const needs = activePetNeedsShopAttention();
@@ -3428,7 +3447,7 @@ function openPetShop(forTopic) {
   const wrap = el('div', { class: 'pet-shop' });
   wrap.appendChild(el('h2', {}, 'Granny\u2019s Pet Pantry'));
   wrap.appendChild(el('p', { class: 'pet-shop-sub' },
-    'Pick a hatchling, then buy food (daily) or joy (weekly). Green pips fill left to right.'));
+    'Pick a hatchling, then buy food (daily) or joy (weekly).'));
   wrap.appendChild(el('p', { class: 'pet-shop-sub', style: { marginTop: '-6px' } },
     `Your XP: ${state.points.toLocaleString()}`));
 
@@ -4534,7 +4553,7 @@ function renderHowToPlay() {
   ));
   head.appendChild(el('h1', { style: { margin: '6px 0 4px', fontSize: '28px' } }, 'How to Play'));
   head.appendChild(el('p', { class: 'htp-intro' },
-    'Start with how you forge a story on the home screen, then see what XP, hatchlings, and ships unlock along the way.'));
+    'Forge stories on the home screen, earn XP, receive alien eggs, hatch them, and upgrade your ships and firepower. BOOM!'));
   for (const slide of HOW_TO_PLAY_SLIDES) {
     const sec = el('div', { class: 'htp-section' });
     const art = el('div', { class: 'htp-art' + (slide.wide ? ' htp-art-wide' : '') });
