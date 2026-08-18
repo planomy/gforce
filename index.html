@@ -4767,6 +4767,17 @@ function topbar() {
       // so the bubble doesn't get clipped against the viewport edge.
       el('button', { class: 'icon-btn hangar-btn', 'data-tip': 'Hangar — choose your ship', 'data-tip-pos': 'left', onclick: openHangar },
         el('img', { src: getEquippedShip().src, alt: 'Hangar' })
+      ),
+      el('a', {
+        class: 'icon-btn',
+        href: 'https://planomy.github.io/siegetactics/',
+        target: '_blank',
+        rel: 'noopener noreferrer',
+        'aria-label': 'Play Siege Tactics maths game',
+        'data-tip': 'Siege Tactics — Maths',
+        'data-tip-pos': 'left'
+      },
+        el('img', { src: 'topbar/st.png?v=1', alt: 'Siege Tactics', draggable: false })
       )
     )
   );
